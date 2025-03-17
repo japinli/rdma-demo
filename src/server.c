@@ -13,6 +13,7 @@
 static const char *progname;
 static int port = 8912;
 static int use_rdma = 0;
+static int timeout = -1;
 
 static void usage(void);
 static void parse_command_options(int argc, char *argv[]);
@@ -44,9 +45,10 @@ usage(void)
 	printf("Usage:\n");
 	printf("  %s [OPTIONS...]\n", progname);
 	printf("\nOptions:\n");
-	printf("  -?, --help         show this page and exit\n");
-	printf("  -p, --port=PORT    specify the listen port (default 8912)\n");
-	printf("  -r, --rdma         use the RDMA protocol\n");
+	printf("  -?, --help            show this page and exit\n");
+	printf("  -p, --port=PORT       specify the listen port (default: %d)\n", port);
+	printf("  -r, --rdma            use the RDMA protocol\n");
+	printf("  -t, --timeout=TIMEOUT specify the poll timeout (default: %d)\n", timeout);
 }
 
 static void
@@ -54,10 +56,11 @@ parse_command_options(int argc, char *argv[])
 {
 	int ch;
 	char *argv0;
-	const char *short_opts = "p:r";
+	const char *short_opts = "p:rt:";
 	struct option long_opts[] = {
 		{"port", required_argument, NULL, 'p'},
 		{"rdma", no_argument, NULL, 'r'},
+		{"timeout", required_argument, NULL, 't'},
 		{NULL, 0, NULL, 0}
 	};
 
@@ -77,6 +80,9 @@ parse_command_options(int argc, char *argv[])
 				break;
 			case 'r':
 				use_rdma = 1;
+				break;
+			case 't':
+				timeout = atoi(optarg);
 				break;
 			default:
 				do_advice(progname);
@@ -131,7 +137,7 @@ server_main(void)
 	nfds++;
 
 	while (1) {
-		rc = rs_poll(fds, nfds, -1);
+		rc = rs_poll(fds, nfds, timeout);
 		if (rc < 0) {
 			write_stderr("%spoll failed: %m\n", use_rdma ? "r" : "");
 			break;

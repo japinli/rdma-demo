@@ -15,3 +15,8 @@ meson build
 cd build
 meson compile
 ```
+
+## Notes
+
+The `rpoll()` is not fully compatible with `poll()`.  For example, the `rpoll()`
+doesn't respect the `timeout` parameter.
